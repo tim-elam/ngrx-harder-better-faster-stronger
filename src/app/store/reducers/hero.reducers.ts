@@ -1,98 +1,155 @@
+import { createReducer, on } from '@ngrx/store';
 import { Hero } from '../../hero';
-import { HeroActions, HeroActionTypes } from '../actions/hero.actions';
-import { HeroState } from '../state/state';
+import {
+  deleteHero,
+  deleteHeroError,
+  deleteHeroSuccess,
+  filterHeroes,
+  filterHeroesClear,
+  filterHeroesError,
+  filterHeroesSuccess,
+  getHeroError,
+  getHeroesError,
+  getHeroesSuccess,
+  getHeroSuccess,
+  saveHeroError,
+  saveHeroSuccess,
+} from '../actions/hero.actions';
 
-export function heroReducer(state: HeroState, action: HeroActions): HeroState {
-  if (!state) {
-    return {
-      heroes: [],
-    };
-  }
-  let nextState: HeroState = { ...state };
-  switch (action.type) {
-    case HeroActionTypes.GetHero:
-      nextState.singleHeroId = action.id;
-      delete nextState.heroesError;
-      break;
+export const heroReducer = createReducer(
+  { heroes: [] },
 
-    case HeroActionTypes.GetHeroSuccess:
-      nextState.heroes = updateHeroes(nextState.heroes, action.hero);
-      delete nextState.singleHeroId;
-      delete nextState.singleHeroError;
-      break;
+  on(
+    getHeroSuccess,
+    (state, { hero }) => ({
+      ...state,
+      singleHeroId: hero.id,
+      singleHeroError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.GetHeroError:
-      delete nextState.singleHeroId;
-      nextState.heroesError = action.error;
-      break;
+  on(
+    getHeroError,
+    (state, { error }) => ({
+      ...state,
+      heroesError: error,
+    }),
+  ),
 
-    case HeroActionTypes.GetHeroes:
-      delete nextState.heroesError;
-      break;
+  on(
+    getHeroError,
+    (state, { error }) => ({
+      ...state,
+      heroesError: error,
+    }),
+  ),
 
-    case HeroActionTypes.GetHeroesSuccess:
-      nextState.heroes = action.heroes.sort(heroSort);
-      delete nextState.heroesError;
-      break;
+  on(
+    getHeroesSuccess,
+    (state, { heroes }) => ({
+      ...state,
+      heroes: heroes.sort(heroSort),
+      heroesError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.GetHeroesError:
-      nextState.heroesError = action.error;
-      break;
+  on(
+    getHeroesError,
+    (state, { error }) => ({
+      ...state,
+      heroesError: error,
+    }),
+  ),
 
+  on(
+    filterHeroes,
+    (state, { filter }) => ({
+      ...state,
+      nameFilter: filter,
+      filterError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.FilterHeroes:
-      nextState.nameFilter = action.filter;
-      delete nextState.filterError;
-      break;
+  on(
+    filterHeroesClear,
+    (state) => ({
+      ...state,
+      nameFilter: undefined,
+      filteredHeroes: undefined,
+      filterError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.FilterHeroesClear:
-      delete nextState.nameFilter;
-      delete nextState.filteredHeroes;
-      delete nextState.filterError;
-      break;
+  on(
+    filterHeroesSuccess,
+    (state, { filteredHeroes }) => ({
+      ...state,
+      filteredHeroes: filteredHeroes.sort(heroSearchSort),
+      filterError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.FilterHeroesSuccess:
-      nextState.filteredHeroes = action.filteredHeroes.sort(heroSearchSort);
-      delete nextState.filterError;
-      break;
+  on(
+    filterHeroesError,
+    (state, { error }) => ({
+      ...state,
+      filterError: error,
+      filteredHeroes: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.FilterHeroesError:
-      nextState.filterError = action.error;
-      delete nextState.filteredHeroes;
-      break;
+  on(
+    saveHeroSuccess,
+    (state, { hero }) => ({
+      ...state,
+      heroes: updateHeroes(state.heroes, hero),
+      heroSavingError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.SaveHero:
-      nextState.heroSavingComplete = false;
-      break;
+  on(
+    saveHeroError,
+    (state, { error }) => ({
+      ...state,
+      heroSavingError: error,
+    }),
+  ),
 
-    case HeroActionTypes.SaveHeroSuccess:
-      nextState.heroes = updateHeroes(nextState.heroes, action.hero);
-      delete nextState.heroSavingError;
-      nextState.heroSavingComplete = true;
-      break;
+  on(
+    deleteHero,
+    (state) => ({
+      ...state,
+      heroSavingComplete: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.SaveHeroError:
-      nextState.heroSavingError;
-      nextState.heroSavingComplete = false;
-      break;
+  on(
+    deleteHero,
+    (state) => ({
+      ...state,
+      heroIsSaving: true,
+    })
+  ),
 
-    case HeroActionTypes.DeleteHero:
-      nextState.heroDeletingComplete = false;
-      break;
+  on(
+    deleteHeroSuccess,
+    (state, { hero }) => ({
+      ...state,
+      heroes: updateHeroes(state.heroes, hero),
+      heroIsSaving: false,
+      heroDeletingError: undefined,
+    }),
+  ),
 
-    case HeroActionTypes.DeleteHeroSuccess:
-      nextState.heroes = nextState.heroes.filter(hero => hero.id !== action.hero.id);
-      delete nextState.heroDeletingError;
-      nextState.heroDeletingComplete = true;
-      break;
-
-    case HeroActionTypes.DeleteHeroError:
-      nextState.heroDeletingError;
-      nextState.heroDeletingComplete = false;
-      break;
-  }
-  return nextState;
-}
+  on(
+    deleteHeroError,
+    (state, { error }) => ({
+      ...state,
+      heroIsSaving: false,
+      heroDeletingError: error,
+    }),
+  ),
+);
 
 function updateHeroes(heroes: Hero[], hero): Hero[] {
   const updateIndex = heroes.findIndex(hero => hero.id === hero.id);

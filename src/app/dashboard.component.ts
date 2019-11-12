@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 
 import { Hero } from './hero';
-import { GetHeroesAction } from './store/actions/hero.actions';
-import { selectHeroes } from './store/selectors/hero.selectors';
+import { getHeroes } from './store/actions/hero.actions';
+import { heroesSelector } from './store/selectors/hero.selectors';
 import { AppState } from './store/state/state';
 
 @Component({
@@ -21,8 +21,8 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.store.dispatch(new GetHeroesAction());
-    this.store.pipe(selectHeroes)
+    this.store.dispatch(getHeroes());
+    this.store.select(heroesSelector)
       .subscribe(heroes => {
         this.heroes = heroes.slice(1, 5);
       });

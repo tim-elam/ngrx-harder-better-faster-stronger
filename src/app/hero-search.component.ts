@@ -4,9 +4,9 @@ import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Hero } from './hero';
-import { FilterHeroesAction } from './store/actions/hero.actions';
-import { selectHeroState } from './store/selectors/hero.selectors';
+import { heroStateSelector } from './store/selectors/hero.selectors';
 import { AppState } from './store/state/state';
+import { filterHeroes } from './store/actions/hero.actions';
 
 @Component({
   selector: 'my-hero-search',
@@ -33,14 +33,16 @@ export class HeroSearchComponent implements OnInit {
       debounceTime(300), // wait for 300ms pause in events
       distinctUntilChanged(), // ignore if next search term is same as previous
     )
-      .subscribe(term => this.store.dispatch(new FilterHeroesAction(term)));
-    this.heroes = this.store.pipe(
-      selectHeroState,
+      .subscribe(filter => this.store.dispatch(filterHeroes({ filter })));
+    this.heroes = this.store.select(
+      heroStateSelector,
+    ).pipe(
       map(state => state.filteredHeroes),
     );
 
-    this.store.pipe(
-      selectHeroState,
+    this.store.select(
+      heroStateSelector,
+    ).pipe(
       map(state => state.filterError),
       filter(Boolean),
     ).subscribe(error => {

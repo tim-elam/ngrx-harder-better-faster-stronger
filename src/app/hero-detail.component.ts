@@ -3,9 +3,9 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { first } from 'rxjs/operators';
 import { Hero } from './hero';
-import { GetHeroAction, SaveHeroAction } from './store/actions/hero.actions';
-import { selectHeroes, selectHeroState } from './store/selectors/hero.selectors';
+import { heroStateSelector, heroesSelector } from './store/selectors/hero.selectors';
 import { AppState } from './store/state/state';
+import { saveHero, getHero } from './store/actions/hero.actions';
 
 @Component({
   selector: 'my-hero-detail',
@@ -29,8 +29,8 @@ export class HeroDetailComponent implements OnInit {
       if (params['id'] !== undefined) {
         const id = +params['id'];
         this.navigated = true;
-        this.store.dispatch(new GetHeroAction(id));
-        this.store.pipe(selectHeroes)
+        this.store.dispatch(getHero({ id }));
+        this.store.select(heroesSelector)
           .subscribe(
             heroes => {
               this.hero = heroes.find(hero => hero.id === id);
@@ -43,10 +43,11 @@ export class HeroDetailComponent implements OnInit {
   }
 
   save(): void {
-    this.store.dispatch(new SaveHeroAction({ ...this.hero }));
-    const heroSaving = this.store.pipe(
-      selectHeroState,
-      first(state => state.heroSavingComplete),
+    this.store.dispatch(saveHero({hero: { ...this.hero }}));
+    const heroSaving = this.store.select(
+      heroStateSelector,
+    ).pipe(
+      first(state => !state.heroIsSaving),
     ).subscribe(heroState => {
       if (heroState.heroSavingError) {
         this.error = heroState.heroSavingError;

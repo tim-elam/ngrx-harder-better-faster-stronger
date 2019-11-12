@@ -1,24 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Observable, of } from 'rxjs';
-import { catchError, concatMap, filter, map } from 'rxjs/operators';
-import { Hero } from '../../hero';
+import { catchError, concatMap, map } from 'rxjs/operators';
 import { HeroService } from '../../hero.service';
 import {
-  DeleteHeroAction,
-  DeleteHeroErrorAction,
-  DeleteHeroSuccessAction,
-  FilterHeroesAction,
-  FilterHeroesErrorAction,
-  FilterHeroesSuccessAction,
-  GetHeroAction,
-  GetHeroErrorAction,
-  GetHeroesAction,
-  GetHeroesErrorAction,
-  GetHeroesSuccessAction,
-  GetHeroSuccessAction,
-  HeroActionTypes,
-  SaveHeroErrorAction, SaveHeroSuccessAction,
+  deleteHero,
+  deleteHeroError,
+  deleteHeroSuccess,
+  filterHeroes,
+  filterHeroesError,
+  filterHeroesSuccess,
+  getHero,
+  getHeroError,
+  getHeroes,
+  getHeroesError,
+  getHeroesSuccess,
+  getHeroSuccess,
+  saveHero,
+  saveHeroError,
+  saveHeroSuccess,
 } from '../actions/hero.actions';
 
 @Injectable({
@@ -30,34 +30,34 @@ export class HeroEffects {
 
   @Effect()
   public search = this.actions.pipe(
-    ofType<FilterHeroesAction>(HeroActionTypes.FilterHeroes),
-    concatMap<FilterHeroesAction, Hero[]>(action => this.heroService.search(action.filter)
+    ofType(filterHeroes),
+    concatMap(action => this.heroService.search(action.filter)
       .pipe(
-        map(filteredHeroes => new FilterHeroesSuccessAction(filteredHeroes)),
-        catchError((error) => of(new FilterHeroesErrorAction(error))),
+        map(filteredHeroes => filterHeroesSuccess({ filteredHeroes })),
+        catchError((error) => of(filterHeroesError({ error }))),
       ),
     ),
   );
 
   @Effect()
   public getHeroes = this.actions.pipe(
-    ofType<GetHeroesAction>(HeroActionTypes.GetHeroes),
+    ofType(getHeroes),
     concatMap(() => this.heroService.getHeroes()
       .pipe(
-        map(heroes => new GetHeroesSuccessAction(heroes)),
-        catchError(error => of(new GetHeroesErrorAction(error))),
+        map(heroes => getHeroesSuccess({ heroes })),
+        catchError(error => of(getHeroesError({ error }))),
       ),
     ),
   );
 
   @Effect()
   public getHero = this.actions.pipe(
-    ofType<GetHeroAction>(HeroActionTypes.GetHero),
+    ofType(getHero),
     concatMap(action =>
       this.heroService.getHero(action.id)
         .pipe(
-          map(hero => new GetHeroSuccessAction(hero)),
-          catchError(error => of(new GetHeroErrorAction(error, action.id)),
+          map(hero => getHeroSuccess({ hero })),
+          catchError(error => of(getHeroError({ error, id: action.id })),
           ),
         ),
     ),
@@ -65,12 +65,12 @@ export class HeroEffects {
 
   @Effect()
   public deleteHero = this.actions.pipe(
-    ofType<DeleteHeroAction>(HeroActionTypes.DeleteHero),
+    ofType(deleteHero),
     concatMap(action =>
       this.heroService.delete(action.hero)
         .pipe(
-          map(hero => new DeleteHeroSuccessAction(action.hero)),
-          catchError(error => of(new DeleteHeroErrorAction(error, action.hero)),
+          map(hero => deleteHeroSuccess({ hero: action.hero })),
+          catchError(error => of(deleteHeroError({ error, hero: action.hero })),
           ),
         ),
     ),
@@ -78,7 +78,7 @@ export class HeroEffects {
 
   @Effect()
   public saveHero = this.actions.pipe(
-    ofType<SaveHeroErrorAction>(HeroActionTypes.SaveHero),
+    ofType(saveHero),
     concatMap((action) => {
         let res: Observable<void>;
         if (action.hero.id) {
@@ -87,8 +87,8 @@ export class HeroEffects {
           res = this.heroService.post(action.hero);
         }
         return res.pipe(
-          map(hero => new SaveHeroSuccessAction(action.hero)),
-          catchError(error => of(new SaveHeroErrorAction(error, action.hero))),
+          map(hero => saveHeroSuccess({ hero: action.hero })),
+          catchError(error => of(saveHeroError({ error, hero: action.hero }))),
         );
       },
     ),
