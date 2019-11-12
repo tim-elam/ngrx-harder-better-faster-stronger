@@ -4,8 +4,8 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Hero } from './hero';
-import { DeleteHeroAction, GetHeroesAction } from './store/actions/hero.actions';
-import { heroSelectors, selectHeroState } from './store/selectors/hero.selectors';
+import { deleteHero, getHeroes } from './store/actions/hero.actions';
+import { heroSelectors, heroStateSelector } from './store/selectors/hero.selectors';
 import { AppState } from './store/state/state';
 
 
@@ -22,11 +22,11 @@ export class HeroesComponent implements OnInit {
   showNgFor = false;
 
   constructor(private router: Router, private store: Store<AppState>) {
-    this.heroes = this.store.pipe(map(heroSelectors.selectAll));
+    this.heroes = this.store.select(heroSelectors.selectAll);
   }
 
   getHeroes(): void {
-    this.store.dispatch(new GetHeroesAction());
+    this.store.dispatch(getHeroes());
   }
 
   addHero(): void {
@@ -43,9 +43,10 @@ export class HeroesComponent implements OnInit {
 
   deleteHero(hero: Hero, event: any): void {
     event.stopPropagation();
-    this.store.dispatch(new DeleteHeroAction(hero));
-    this.store.pipe(
-      selectHeroState,
+    this.store.dispatch(deleteHero({ hero }));
+    this.store.select(
+      heroStateSelector,
+    ).pipe(
       map(state => state.heroDeletingError),
     ).subscribe((error) => {
       this.error = error;
