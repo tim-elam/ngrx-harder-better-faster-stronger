@@ -1,44 +1,34 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { EntityActions } from 'ngrx-data';
 import { of } from 'rxjs';
-import { catchError, concatMap, map, tap } from 'rxjs/operators';
-import { Hero } from '../../hero';
-import { HeroSearchService } from '../../hero-search.service';
-import {
-  FilterHeroesAction,
-  FilterHeroesErrorAction,
-  FilterHeroesSuccessAction,
-  HeroActionTypes,
-} from '../actions/hero.actions';
-import { ApiEntities } from '../data/config';
+import { catchError, concatMap, filter, map, tap } from 'rxjs/operators';
+import { HeroService } from '../../hero.service';
+import { filterHeroes, filterHeroesError, filterHeroesSuccess } from '../actions/hero.actions';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HeroEffects {
   constructor(
-    private heroService: HeroSearchService,
+    private heroService: HeroService,
     private actions: Actions,
-    private entityActions: EntityActions,
   ) {
   }
 
   @Effect()
   public search = this.actions.pipe(
-    ofType<FilterHeroesAction>(HeroActionTypes.FilterHeroes),
-    concatMap<FilterHeroesAction, Hero[]>(action => this.heroService.search(action.filter)
+    ofType(filterHeroes),
+    concatMap(action => this.heroService.search(action.filter)
       .pipe(
-        map(filteredHeroes => new FilterHeroesSuccessAction(filteredHeroes)),
-        catchError((error) => of(new FilterHeroesErrorAction(error))),
+        map(filteredHeroes => filterHeroesSuccess({ filteredHeroes })),
+        catchError((error) => of(filterHeroesError({ error }))),
       ),
     ),
   );
 
   @Effect()
-  public heroErrors = this.entityActions
-    .ofEntityType(ApiEntities.Hero)
-    .where(action => action.type.endsWith('/error'))
+  public heroErrors = this.heroService
+    .errors$
     .pipe(
       tap(error => console.error(error)),
     );

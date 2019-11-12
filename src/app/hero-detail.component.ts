@@ -1,9 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { EntityOp, EntityService, EntityServiceFactory } from 'ngrx-data';
 import { take } from 'rxjs/operators';
 import { Hero } from './hero';
-import { ApiEntities } from './store/data/config';
+import { HeroService } from './hero.service';
 
 @Component({
   selector: 'my-hero-detail',
@@ -16,13 +15,10 @@ export class HeroDetailComponent implements OnInit {
   error: any;
   navigated = false; // true if navigated here
 
-  private readonly heroService: EntityService<Hero>;
-
   constructor(
+    private heroService: HeroService,
     private route: ActivatedRoute,
-    factory: EntityServiceFactory,
   ) {
-    this.heroService = factory.create<Hero>(ApiEntities.Hero);
   }
 
   ngOnInit(): void {
@@ -47,18 +43,14 @@ export class HeroDetailComponent implements OnInit {
     this.heroService.update(this.hero);
     this.heroService.store
       .pipe(take(1))
-      .subscribe(() => {
-        this.goBack(this.hero);
-      });
-    this.heroService.errors$
-      .ofOp(
-        EntityOp.SAVE_ADD_ONE_ERROR,
-        EntityOp.SAVE_UPDATE_ONE_ERROR,
-      )
-      .pipe(take(1))
-      .subscribe(error => {
-        this.error = error;
-      });
+      .subscribe(
+        () => {
+          this.goBack(this.hero);
+        },
+        (error) => {
+          this.error = error;
+        },
+      );
   }
 
   goBack(savedHero: Hero = null): void {

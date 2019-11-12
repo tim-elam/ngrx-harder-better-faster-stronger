@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { EntityService, EntityServiceFactory } from 'ngrx-data';
 
 import { Hero } from './hero';
-import { ApiEntities } from './store/data/config';
+import { HeroService } from './hero.service';
 
 @Component({
   selector: 'my-dashboard',
@@ -13,13 +12,9 @@ import { ApiEntities } from './store/data/config';
 export class DashboardComponent implements OnInit {
   heroes: Hero[] = [];
 
-  private readonly heroService: EntityService<Hero>;
-
   constructor(
     private router: Router,
-    factory: EntityServiceFactory,
-  ) {
-    this.heroService = factory.create<Hero>(ApiEntities.Hero);
+    private heroService: HeroService) {
   }
 
   ngOnInit(): void {

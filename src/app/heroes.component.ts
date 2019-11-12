@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { EntityOp, EntityService, EntityServiceFactory } from 'ngrx-data';
+import { EntityOp, ofEntityOp } from '@ngrx/data';
 import { Observable } from 'rxjs';
 import { Hero } from './hero';
-import { ApiEntities } from './store/data/config';
+import { HeroService } from './hero.service';
 
 
 @Component({
@@ -18,13 +18,10 @@ export class HeroesComponent implements OnInit {
   error: any;
   showNgFor = false;
 
-  private readonly heroService: EntityService<Hero>;
-
   constructor(
     private router: Router,
-    factory: EntityServiceFactory,
+    private heroService: HeroService,
   ) {
-    this.heroService = factory.create<Hero>(ApiEntities.Hero);
   }
 
   getHeroes(): void {
@@ -47,7 +44,9 @@ export class HeroesComponent implements OnInit {
     event.stopPropagation();
     this.heroService.delete(hero.id);
     this.heroService.errors$
-      .ofOp(EntityOp.SAVE_DELETE_ONE_ERROR)
+      .pipe(
+        ofEntityOp(EntityOp.SAVE_DELETE_ONE_ERROR)
+      )
       .subscribe(error => {
         this.error = error;
       });
